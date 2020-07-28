@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OpenMaps</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""
+    ></script>
+    <link rel="icon" type="image/png" href="../images/logo.png" />
+    <style type="text/css">
+      #mapid {
+        height: 650px;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .header {
+        width: 100vw;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" type="text/css" href="./index.css" />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+      <a href="#" class="navbar-brand">
+        <img src="../images/logo.png" height="28" />
+      </a>
+
+      <a href="#" class="navbar-brand">OpenMaps</a>
+    </nav>
+    <div>
+      <div id="mapid" class="col-12"></div>
+    </div>
+    <div class="row">
+      <div class="col-5"></div>
+
+      <div class="col-2 btn-group vertical-center" role="group">
+        <button
+          type="button"
+          class="col-6 btn btn-primary"
+          onclick="onClickFindRoute()"
+        >
+          Find Route
+        </button>
+        <button
+          type="button"
+          class="col-6 btn btn-danger"
+          onclick="onClickReset()"
+        >
+          Reset Markers
+        </button>
+      </div>
+      <div class="col-3"></div>
+    </div>
+  </body>
+  <script>
+    var counter = 0;
+    var mymap = L.map("mapid").setView([51.5125, -0.1266], 15);
+    var markers = [];
+    var polyline = [];
+    L.tileLayer(
+      "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
+      {
+        attribution:
+          'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 30,
+        id: "mapbox/streets-v11",
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken:
+          "pk.eyJ1IjoibmViaGFpbGVtYXJpYW0iLCJhIjoiY2tkNGZyMzZkMDZydDJybnphMHpudzJ1biJ9.eEgDH1At8Vh9P9Ag2OID3g",
+      }
+    ).addTo(mymap);
+
+    function onMapClick(e) {
+      if (window.counter < 2) {
+        window.counter++;
+
+        window.markers.push(L.marker(e.latlng).addTo(mymap));
+      } else {
+        alert("Click the reset button to add new markers.");
+      }
+    }
+    function onClickReset(e) {
+      window.counter = 0;
+      if (window.polyLineGroup) window.polyLineGroup.clearLayers();
+
+      window.markers.forEach(function (marker) {
+        mymap.removeLayer(marker);
+      });
+      window.markers = [];
+    }
+
+    function onClickFindRoute(e) {
+      if (window.markers.length == 2) {
+        var http = new XMLHttpRequest();
+        var url = "http://localhost:8000/";
+        http.open("POST", url, true);
+
+        //Send the proper header information along with the request
+        http.setRequestHeader("Content-type", "application/json");
+        node1 = window.markers[0]._latlng;
+        node2 = window.markers[1]._latlng;
+        nodes = {
+          node1: node1,
+          node2: node2,
+        };
+        http.send(JSON.stringify(nodes));
+
+        http.onreadystatechange = function () {
+          //Call a function when the state changes.
+          if (http.readyState == 4 && http.status == 200) {
+            let nodes = JSON.parse(http.responseText);
+            window.polyLineGroup = L.layerGroup();
+            let pointList = [node1];
+
+            for (var i = 0; i < nodes.length; i++) {
+              let point = [
+                parseFloat(nodes[i].node_lat),
+                parseFloat(nodes[i].node_lon),
+              ];
+
+              pointList.push(point);
+            }
+
+            pointList.push(node2);
+            window.polyLineGroup.addLayer(L.polyline(pointList));
+            window.polyLineGroup.addTo(mymap);
+            // polyline = L.polyline(pointList).addTo(mymap);
+          }
+        };
+      } else {
+        if (window.markers.length == 0) {
+          alert("Click the source and destination.");
+        } else {
+          alert("Click the destination.");
+        }
+      }
+    }
+
+    mymap.on("click", onMapClick);
+  </script>
+</html>

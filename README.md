@@ -5,17 +5,17 @@ Route finding application using map data from OpenStreetMaps and Leaflet.
 
 Install dependencies.
 ```
-cd OpenMaps/
-cd server/
-npm install
+$ cd OpenMaps/
+$ cd server/
+$ npm install
 ```
 
 ## Running
 Start the server.
 ```
-cd OpenMaps/
-cd server/
-npm start 
+$ cd OpenMaps/
+$ cd server/
+$ npm start 
 ```
 Open the HTML page inside the client folder with a browser.
 

@@ -1,4 +1,7 @@
 # OpenMaps
+
+## Introduction
+
 Route finding application using map data from OpenStreetMaps and Leaflet.
 
 ## Installation

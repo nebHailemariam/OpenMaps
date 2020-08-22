@@ -4,6 +4,11 @@ Route finding application using map data from OpenStreetMaps and Leaflet.
 
 ## Installation
 
+Clone the repository
+```
+$ git clone https://github.com/nebHailemariam/OpenMaps.git
+```
+
 Install dependencies.
 ```
 $ cd OpenMaps/
